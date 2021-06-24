@@ -8,4 +8,5 @@
 ![image1](Figure_1.png)
 ![image2](Figure_2.png)
 <h2>Trong file <i>detect_facemask.py</i>, mình viết đoạn code xuất video realtime từ webcam laptop, viết thêm một số hàm nhận diện khuôn mặt sử dụng thư viện haar_cascade và sử dụng dữ liệu mình vừa train cho máy tính để nhận diện khẩu trang trên khuôn mặt.</h2><br>
+<h2>Trong file mainwindow.py, outwindow.py mình viết code hiển thị 2 file UI là mainwindow.ui và outwindow.ui, 2 file này mình làm bằng Qt Designer, để hiển thị phần hình của App.</h2> <br />
 <h2>Have Fun!</h2>
