@@ -4,7 +4,8 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QApplication, QDialog
 import resource
-from outwindow import Ui_OutputDialog
+#from outwindow import Ui_OutputDialog
+from outwindow import UI_outDialog
 
 class UI_Dialog(QDialog):
     def __init__(self):
@@ -17,7 +18,7 @@ class UI_Dialog(QDialog):
         self.Videocapture_ = None
 
     def refreshAll(self):
-        self.Videocapture_ = "0"
+        self.Videocapture_ = "1"
 
     @pyqtSlot()
     def runSlot(self):
@@ -34,9 +35,9 @@ class UI_Dialog(QDialog):
         '''
         Cửa sổ hiển thị video trên GUI
         '''
-        self._new_window = Ui_OutputDialog()
+        self._new_window = UI_outDialog()
         self._new_window.show()
-        self._new_window.startVideo(self.Videocapture_)
+        # self._new_window.startVideo(self.Videocapture_)
         print("Video Played")
 
 if __name__ == "__main__":

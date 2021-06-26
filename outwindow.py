@@ -1,40 +1,45 @@
-from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.uic import loadUi
-from PyQt5.QtCore import pyqtSlot, QTimer
-from PyQt5.QtWidgets import QDialog
+import sys
 import cv2 as cv
-import numpy as np
-import os
+from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSlot
+from PyQt5 import QtWidgets
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QDialog, QApplication
+from PyQt5.uic import loadUi
 from keras.models import load_model
-from keras.saving.saved_model.load import load
+import numpy as np
+import resource
 
-class Ui_OutputDialog(QDialog):
+from numpy.core.fromnumeric import resize
+
+class UI_outDialog(QDialog):
+    
+    
     def __init__(self):
-        super(Ui_OutputDialog, self).__init__()
-        loadUi('outwindow.ui', self)
-        self.image = None
+        super(UI_outDialog, self).__init__()
+
+        loadUi("outwindow.ui", self)
+
+        self.logic = 0
+        self.value = 1
+
+        self.showBtn.clicked.connect(self.onClicked)
+
+        self.captureBtn.clicked.connect(self.CaptureClicked)
+
 
     @pyqtSlot()
-    def startVideo(self, camera_name):
-        '''
-        camera_name: link of camera or usb camera in Device
-        '''
-        if len(camera_name) == 1:
-            self.capture = cv.VideoCapture(int(camera_name))
-        else:
-            self.capture = cv.VideoCapture(camera_name)
-        
-    def face_mask_rec_(self, frame):
+    def onClicked(self):
+        haar_cascade = cv.CascadeClassifier('haar_face.xml')
         model = load_model('mask_detectot.model')
-
-        haar_face = cv.CascadeClassifier('haar_face.xml')
-
-        labels_dict = {1:'With Mask',0:'Without Mask'}
+        cap = cv.VideoCapture(0)
+        labels_dict = {0:'Without Mask',1:'With Mask'}
         color_dict = {0:(0,0,255),1:(0,255,0)}
 
-        while(True):
-            gray = cv.cvtColor(frame,cv.COLOR_BGR2GRAY)
-            faces = haar_face.detectMultiScale(gray,1.3,5)
+        while (cap.isOpened()): 
+            ret, frame = cap.read()
+            gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+            faces = haar_cascade.detectMultiScale(gray,1.3,5)
 
             for (x,y,w,h) in faces:
                 face_img = gray[y:y+w,x:x+w]
@@ -43,34 +48,57 @@ class Ui_OutputDialog(QDialog):
                 reshaped = np.reshape(normalized,(1,100,100,1))
                 result = model.predict(reshaped)
 
-                label = np.argmax(result,axis=1)[0]
+                label = np.argmax(result, axis=1)[0]
 
                 cv.rectangle(frame,(x,y),(x+w,y+h),color_dict[label],2)
                 cv.rectangle(frame,(x,y-40),(x+w,y),color_dict[label],-1)
-                cv.putText(frame,labels_dict[label], (x,y-10), cv.FONT_HERSHEY_COMPLEX, 0.8, (255,255,255),2)
+                cv.putText(frame,labels_dict[label], (x,y-10), cv.FONT_HERSHEY_COMPLEX, 0.8,(255,255,255),2)
+            
+            if ret == True:
+                #print("Here")
+                self.displayImage(frame, 1)
 
-            return frame
+                if(self.logic==2):
 
-    def update_frame(self):
-        ret, self.image = self.capture.read()
-        self.displayImage(self.image, 1)
+                    self.value = self.value + 1
+                    #path = r'D:\TỰ HỌC\Face-Recogntion-PyQt\Face_Detection_PyQt_base\ImagesAttendance\%s.png'%(self.value)
+                    cv.imwrite('%s.png'%(self.value),frame)
 
-    def displayImage(self, image, window = 1):
-        image = cv.resize(image,(995,520))
-        try:
-            image = self.face_mask_rec_(image)
-        except Exception as e:
-            print(e)
-        
+                    self.logic = 1
+                if cv.waitKey(20) & 0xFF == ord('q'):
+                    break
+            else:
+                print("return not found")
+        cap.release()
+        cv.destroyAllWindows()
+
+    def CaptureClicked(self):
+        self.logic = 2
+
+    def exitClicked(self):
+        self.logic = 3
+
+    def displayImage(self, img, window = 1):
         qformat = QImage.Format_Indexed8
-        if len(image.shape) ==3:
-            if image.shape[2] ==4:
-                qformat = QImage.Format_RGBA8888
+
+        if len(img.shape) ==3:
+            if (img.shape[2]) ==4:
+                qformat = QImage.Format_RGBA888
+
             else:
                 qformat = QImage.Format_RGB888
-        outImage = QImage(image, image.shape[1], image.shape[0],image.strides[0],qformat)
-        outImage = outImage.rgbSwapped()
+        img = QImage(img, img.shape[1], img.shape[0], qformat)
+        img = img.rgbSwapped()
+        self.label.setPixmap(QPixmap.fromImage(img))
+        self.label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
 
-        if window == 1:
-            self.label.setPixmap(QPixmap.fromImage(outImage))
-            self.label.setScaledContents(True)
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = UI_outDialog()
+    window.show()
+    try:
+        sys.exit(app.exec_())
+    except:
+        print('Exiting')
+
