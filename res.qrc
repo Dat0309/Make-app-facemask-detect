@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="images">
+    <file>Picture/mask.jpg</file>
+    <file>Picture/mask2.jpg</file>
+  </qresource>
+</RCC>
