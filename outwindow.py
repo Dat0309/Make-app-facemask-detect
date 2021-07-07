@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QDialog, QApplication
 from PyQt5.uic import loadUi
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 import numpy as np
 import resource
 
